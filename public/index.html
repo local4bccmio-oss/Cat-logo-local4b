@@ -53,7 +53,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .lb .pic{width:min(92vw,calc(86vh*.8),520px);aspect-ratio:4/5;background-repeat:no-repeat;border-radius:8px}
 .lb .cap{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:#fff;font-size:14px}
 .sz{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.sz .chip{padding:6px 10px}.sz .chip em{font-style:normal;margin-left:6px;font-weight:700}.li .top{display:flex;justify-content:space-between;gap:10px;align-items:start}.li .need{font-size:12px;color:var(--mute);margin-top:4px}.qty{display:inline-flex;align-items:center;gap:6px}.qty button{border:0;background:var(--chip);color:var(--ink);width:26px;height:26px;border-radius:50%;cursor:pointer;font-weight:700}.qty span{min-width:16px;text-align:center;font-weight:700}.nota{width:100%;min-height:84px;margin-top:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:10px 12px;font:400 15px var(--body);resize:vertical}.nl{display:block;margin-top:14px;font:700 14px var(--body)}.note{font-size:12px;color:var(--mute);margin-top:10px}
-</style>
+.qty .chip{width:auto;height:auto;min-width:0;white-space:nowrap;line-height:1.2}.qty{flex-wrap:nowrap}.inote{width:100%;box-sizing:border-box;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:400 14px var(--body);padding:8px 10px;resize:vertical;min-height:44px}</style>
 <div class="wrap">
 <header><h1>Catálogo Local 4B</h1><p>Calzado · <span id="tot"></span> modelos disponibles</p></header>
 <div class="bar">
@@ -75,7 +75,8 @@ const D=[{"f":"14698-H.jpg","b":"B1","n":"","r":["14698_"],"t":"40EUR al 44EUR",
 const BN={B1:"RefB1",B2:"RefB2",B3:"RefB3",B4:"RefB4",B5:"RefB5",B9:"RefB9",NN:"RefNN"};
 const $=s=>document.querySelector(s);
 const st={b:"",m:"",g:"",z:0,q:"",n:48};
-const order=new Map();try{window.__nota=localStorage.getItem("nota4b")||""}catch(e){window.__nota=""}
+const order=new Map();window.__nn={};try{window.__nn=JSON.parse(localStorage.getItem("notas4b")||"{}")}catch(e){}
+const saveNN=()=>{try{localStorage.setItem("notas4b",JSON.stringify(window.__nn))}catch(e){}};try{window.__nota=localStorage.getItem("nota4b")||""}catch(e){window.__nota=""}
 try{const o=JSON.parse(localStorage.getItem("pedido4b2")||"[]");o.forEach(([c,s])=>{if(D.some(d=>d.f===c))order.set(c,s||{})})}catch(e){}
 const save=()=>{try{localStorage.setItem("pedido4b2",JSON.stringify([...order.entries()]))}catch(e){}};
 const tal=t=>(t||"").replace(/EUR/g,"").replace(/\s+-\s+/g," · ");
@@ -118,10 +119,10 @@ function render(){
 const pares=m=>Object.values(m).reduce((a,b)=>a+b,0);
 function dock(){const n=order.size;let p=0;order.forEach(s=>p+=pares(s));$("#dn").textContent=n+(n===1?" modelo":" modelos");
  $("#dt").textContent=n?(p?p+" pares pedidos":"Elige tallas o escribe una nota"):"Toca Agregar en cada foto"}
-function text(){const L=[...order.entries()].map(([f,s])=>[find(f),s]).filter(([d])=>d).map(([d,s])=>{const ts=Object.keys(s).sort((a,b)=>a-b).map(z=>`T${z} x${s[z]}`).join(", ");return `• ${code(d)} ${nom(d)}${d.c?" "+d.c:""}: ${ts||"(tallas por definir)"}\n  Foto: ${new URL("p/"+encodeURIComponent(d.f),location.href).href}`});const nt=(window.__nota||"").trim();return "Hola, quiero este pedido:\n"+L.join("\n")+(nt?"\n\nNota del cliente:\n"+nt:"")}
+function text(){const L=[...order.entries()].map(([f,s])=>[find(f),s]).filter(([d])=>d).map(([d,s])=>{const ts=Object.keys(s).sort((a,b)=>a-b).map(z=>`T${z} x${s[z]}`).join(", ");return `• ${code(d)} ${nom(d)}${d.c?" "+d.c:""}: ${ts||"(tallas por definir)"}${(window.__nn[d.f]||"").trim()?"\n  Nota: "+window.__nn[d.f].trim():""}\n  Foto: ${new URL("p/"+encodeURIComponent(d.f),location.href).href}`});const nt=(window.__nota||"").trim();return "Hola, quiero este pedido:\n"+L.join("\n")+(nt?"\n\nNota del cliente:\n"+nt:"")}
 function sheet(){
  const L=$("#layer");
- L.innerHTML=`<div class="sheet" id="sh"><div class="panel" role="dialog" aria-label="Pedido"><h2>Mi pedido</h2><div id="li"></div><div class="note">Elige las tallas que necesitas y cuántos pares de cada una.</div><label class="nl" for="nota">Nota o tallas a mano</label><textarea class="nota" id="nota" placeholder="Ej: Necesito 2 de la 40, 2 de la 41, 1 de la 42 (2.40 / 2.41 / 1.42)"></textarea><div class="note">Nosotros confirmamos por WhatsApp la disponibilidad de lo que pidas.</div><div class="acts"><button class="btn" id="cp">Copiar pedido</button><a class="btn alt" id="wa" target="_blank" rel="noopener" style="text-decoration:none">Abrir WhatsApp</a><button class="btn alt" id="cl">Cerrar</button></div></div></div>`;
+ L.innerHTML=`<div class="sheet" id="sh"><div class="panel" role="dialog" aria-label="Pedido"><h2>Mi pedido</h2><div id="li"></div><div class="note">Elige las tallas que necesitas y cuántos pares de cada una.</div><label class="nl" for="nota">Nota general del pedido (opcional)</label><textarea class="nota" id="nota" placeholder="Ej: Necesito 2 de la 40, 2 de la 41, 1 de la 42 (2.40 / 2.41 / 1.42)"></textarea><div class="note">Nosotros confirmamos por WhatsApp la disponibilidad de lo que pidas.</div><div class="acts"><button class="btn" id="cp">Copiar pedido</button><a class="btn alt" id="wa" target="_blank" rel="noopener" style="text-decoration:none">Abrir WhatsApp</a><button class="btn alt" id="cl">Cerrar</button></div></div></div>`;
  const li=$("#li");
  if(!order.size)li.innerHTML='<div class="empty">Todavía no agregaste modelos.</div>';
  order.forEach((s,f)=>{const d=find(f);if(!d)return;
@@ -135,7 +136,7 @@ function sheet(){
    b.appendChild(c);
    if(q){const m=document.createElement("button");m.type="button";m.textContent="−";m.setAttribute("aria-label","Quitar un par T"+z);m.onclick=()=>{if(s[z]>1)s[z]--;else delete s[z];save();dock();sheet()};b.appendChild(m)}
    zs.appendChild(b)});
-  r.appendChild(zs);const n=document.createElement("div");n.className="need";n.textContent=pares(s)?pares(s)+" pares":"Toca una talla para pedirla. Cada toque suma un par.";r.appendChild(n);li.appendChild(r)});
+  r.appendChild(zs);const ta=document.createElement("textarea");ta.className="inote";ta.rows=2;ta.placeholder="Nota de este modelo. Ej: 2.40/2.41/1.42";ta.value=window.__nn[f]||"";ta.oninput=()=>{window.__nn[f]=ta.value;saveNN();const w=document.querySelector("#wa");if(w)w.href="https://wa.me/?text="+encodeURIComponent(text())};r.appendChild(ta);const n=document.createElement("div");n.className="need";n.textContent=pares(s)?pares(s)+" pares":"Toca una talla para pedirla. Cada toque suma un par.";r.appendChild(n);li.appendChild(r)});
  const nta=$("#nota");nta.value=window.__nota||"";const upd=()=>{window.__nota=nta.value;try{localStorage.setItem("nota4b",nta.value)}catch(e){}$("#wa").href="https://wa.me/?text="+encodeURIComponent(text())};nta.oninput=upd;upd();
  $("#cp").onclick=async()=>{try{await navigator.clipboard.writeText(text());$("#cp").textContent="Copiado"}catch(e){const t=document.createElement("textarea");t.value=text();li.appendChild(t);t.select();$("#cp").textContent="Selecciona y copia"}};
  $("#cl").onclick=()=>L.innerHTML="";$("#sh").onclick=e=>{if(e.target.id==="sh")L.innerHTML=""}}
