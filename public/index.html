@@ -1,4 +1,4 @@
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Catálogo Local 4B</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Catálogo zapatillas</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap">
 <style>
@@ -55,7 +55,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .sz{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.sz .chip{padding:6px 10px}.sz .chip em{font-style:normal;margin-left:6px;font-weight:700}.li .top{display:flex;justify-content:space-between;gap:10px;align-items:start}.li .need{font-size:12px;color:var(--mute);margin-top:4px}.qty{display:inline-flex;align-items:center;gap:6px}.qty button{border:0;background:var(--chip);color:var(--ink);width:26px;height:26px;border-radius:50%;cursor:pointer;font-weight:700}.qty span{min-width:16px;text-align:center;font-weight:700}.nota{width:100%;min-height:84px;margin-top:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:10px 12px;font:400 15px var(--body);resize:vertical}.nl{display:block;margin-top:14px;font:700 14px var(--body)}.note{font-size:12px;color:var(--mute);margin-top:10px}
 .qty .chip{width:auto;height:auto;min-width:0;white-space:nowrap;line-height:1.2}.qty{flex-wrap:nowrap}.inote{width:100%;box-sizing:border-box;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:400 14px var(--body);padding:8px 10px;resize:vertical;min-height:44px}</style>
 <div class="wrap">
-<header><h1>Catálogo Local 4B</h1><p>Calzado · <span id="tot"></span> modelos disponibles</p></header>
+<header><h1>Catálogo zapatillas</h1><p>Calzado · <span id="tot"></span> modelos disponibles</p></header>
 <div class="bar">
 <input id="q" type="search" placeholder="Buscar por marca, modelo, color o referencia" aria-label="Buscar">
 <div class="row" id="fb"></div>
@@ -128,7 +128,7 @@ async function orderImages(){
  const items=[...order.entries()].map(([f,s])=>[find(f),s]).filter(([d])=>d);const out=[];
  for(let k=0;k<items.length;k+=6){const part=items.slice(k,k+6);const W=1080,RH=420,HD=110,FT=(window.__nota||"").trim()?130:30;
   const cv=document.createElement("canvas");cv.width=W;cv.height=HD+part.length*RH+FT;const c=cv.getContext("2d");
-  c.fillStyle="#fff";c.fillRect(0,0,W,cv.height);c.fillStyle="#14171c";c.font="700 44px sans-serif";c.fillText("Mi pedido · Local 4B",32,68);
+  c.fillStyle="#fff";c.fillRect(0,0,W,cv.height);c.fillStyle="#14171c";c.font="700 44px sans-serif";c.fillText("Mi pedido · Catálogo zapatillas",32,68);
   c.fillStyle="#5d6572";c.font="400 26px sans-serif";c.fillText("Pedido "+(k/6+1)+" de "+Math.ceil(items.length/6),32,100);
   for(let i=0;i<part.length;i++){const [d,s]=part[i];const y=HD+i*RH;
    c.fillStyle="#d9dde3";c.fillRect(32,y,W-64,2);
@@ -143,7 +143,7 @@ async function orderImages(){
    const n=(window.__nn[d.f]||"").trim();if(n){c.fillStyle="#14171c";c.font="600 28px sans-serif";wrap(c,"Nota: "+n,x,cy+104,W-x-40,34)}
   }
   const nt=(window.__nota||"").trim();if(nt){const y=HD+part.length*RH;c.fillStyle="#d9dde3";c.fillRect(32,y,W-64,2);c.fillStyle="#14171c";c.font="600 30px sans-serif";wrap(c,"Nota: "+nt,32,y+56,W-64,38)}
-  out.push(await new Promise(r=>cv.toBlob(b=>r(new File([b],"pedido-local4b"+(out.length?"-"+(out.length+1):"")+".png",{type:"image/png"})),"image/png")))}
+  out.push(await new Promise(r=>cv.toBlob(b=>r(new File([b],"pedido-zapatillas"+(out.length?"-"+(out.length+1):"")+".png",{type:"image/png"})),"image/png")))}
  return out}
 function sheet(){
  const L=$("#layer");
