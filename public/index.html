@@ -1,4 +1,4 @@
-<title>Catálogo Local 4B</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Catálogo Local 4B</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap">
 <style>
@@ -24,7 +24,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 #q{width:100%;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:10px 12px;font:400 15px var(--body)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .count{color:var(--mute);font-size:13px;padding-block:12px 8px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .card{background:var(--card);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
 .ph{aspect-ratio:4/5;width:100%;background-repeat:no-repeat;cursor:zoom-in;background-color:var(--chip);border:0;padding:0}
 .info{padding:10px 10px 12px;display:grid;gap:3px;min-width:0}
@@ -118,7 +118,7 @@ function render(){
 const pares=m=>Object.values(m).reduce((a,b)=>a+b,0);
 function dock(){const n=order.size;let p=0;order.forEach(s=>p+=pares(s));$("#dn").textContent=n+(n===1?" modelo":" modelos");
  $("#dt").textContent=n?(p?p+" pares pedidos":"Elige tallas o escribe una nota"):"Toca Agregar en cada foto"}
-function text(){const L=[...order.entries()].map(([f,s])=>[find(f),s]).filter(([d])=>d).map(([d,s])=>{const ts=Object.keys(s).sort((a,b)=>a-b).map(z=>`T${z} x${s[z]}`).join(", ");return `• ${code(d)} ${nom(d)}${d.c?" "+d.c:""}: ${ts||"(tallas por definir)"}`});const nt=(window.__nota||"").trim();return "Hola, quiero este pedido:\n"+L.join("\n")+(nt?"\n\nNota del cliente:\n"+nt:"")}
+function text(){const L=[...order.entries()].map(([f,s])=>[find(f),s]).filter(([d])=>d).map(([d,s])=>{const ts=Object.keys(s).sort((a,b)=>a-b).map(z=>`T${z} x${s[z]}`).join(", ");return `• ${code(d)} ${nom(d)}${d.c?" "+d.c:""}: ${ts||"(tallas por definir)"}\n  Foto: ${new URL("p/"+encodeURIComponent(d.f),location.href).href}`});const nt=(window.__nota||"").trim();return "Hola, quiero este pedido:\n"+L.join("\n")+(nt?"\n\nNota del cliente:\n"+nt:"")}
 function sheet(){
  const L=$("#layer");
  L.innerHTML=`<div class="sheet" id="sh"><div class="panel" role="dialog" aria-label="Pedido"><h2>Mi pedido</h2><div id="li"></div><div class="note">Elige las tallas que necesitas y cuántos pares de cada una.</div><label class="nl" for="nota">Nota o tallas a mano</label><textarea class="nota" id="nota" placeholder="Ej: Necesito 2 de la 40, 2 de la 41, 1 de la 42 (2.40 / 2.41 / 1.42)"></textarea><div class="note">Nosotros confirmamos por WhatsApp la disponibilidad de lo que pidas.</div><div class="acts"><button class="btn" id="cp">Copiar pedido</button><a class="btn alt" id="wa" target="_blank" rel="noopener" style="text-decoration:none">Abrir WhatsApp</a><button class="btn alt" id="cl">Cerrar</button></div></div></div>`;
