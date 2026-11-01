@@ -85,7 +85,7 @@ const code=d=>d.f.replace(".jpg","");
 const nom=d=>d.n||("Ref "+(d.r[0]||code(d)));
 const tl=d=>d.z.join(" · ");
 const find=f=>D.find(d=>d.f===f);
-function chips(el,items,key,label){el.innerHTML="";const s=document.createElement("span");s.className="lbl";s.textContent=label;el.appendChild(s);items.forEach(([v,l,c])=>{const b=document.createElement("button");b.className="chip";b.type="button";b.setAttribute("aria-pressed",String(st[key]===v));b.innerHTML=l+(c!=null?"<small>"+c+"</small>":"");b.onclick=()=>{const nv=(key==="z"&&st.z===v)?0:v;if(nv){["b","m","z"].forEach(k=>{if(k!==key&&["b","m","z"].includes(key))st[k]=k==="z"?0:""})}if(nv&&key==="z")st.g="";st[key]=nv;st.n=48;render()};el.appendChild(b)})}
+function chips(el,items,key,label){el.innerHTML="";const s=document.createElement("span");s.className="lbl";s.textContent=label;el.appendChild(s);items.forEach(([v,l,c])=>{const b=document.createElement("button");b.className="chip";b.type="button";b.setAttribute("aria-pressed",String(st[key]===v));b.innerHTML=l+(c!=null?"<small>"+c+"</small>":"");b.onclick=()=>{const nv=(key==="z"&&st.z===v)?0:v;if(nv){["b","m","g","z"].forEach(k=>{if(k!==key)st[k]=k==="z"?0:""})}st[key]=nv;st.n=48;render()};el.appendChild(b)})}
 function match(d){
  if(st.b&&d.b!==st.b)return false;
  if(st.m&&d.m!==st.m)return false;
