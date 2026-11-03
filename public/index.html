@@ -148,9 +148,25 @@ async function orderImages(){
   const nt=(window.__nota||"").trim();if(nt){const y=HD+part.length*RH;c.fillStyle="#d9dde3";c.fillRect(32,y,W-64,2);c.fillStyle="#14171c";c.font="600 30px sans-serif";wrap(c,"Nota: "+nt,32,y+56,W-64,38)}
   out.push(await new Promise(r=>cv.toBlob(b=>r(new File([b],"pedido-zapatillas"+(out.length?"-"+(out.length+1):"")+".png",{type:"image/png"})),"image/png")))}
  return out}
+const HK="hist4b";
+function getHist(){try{return JSON.parse(localStorage.getItem(HK)||"[]")}catch(e){return[]}}
+function archive(){if(!order.size)return;const items=[...order.entries()].map(([f,s])=>({f,s:Object.assign({},s),n:(window.__nn[f]||"")}));const H=getHist();H.unshift({t:Date.now(),items,nota:window.__nota||""});try{localStorage.setItem(HK,JSON.stringify(H.slice(0,60)))}catch(e){}
+ order.clear();save();window.__nn={};saveNN();window.__nota="";try{localStorage.removeItem("nota4b")}catch(e){}}
+function finish(ms){archive();setTimeout(()=>location.reload(),ms)}
+function hist(){const L=$("#layer");const H=getHist();
+ L.innerHTML=`<div class="sheet" id="sh"><div class="panel" role="dialog" aria-label="Pedidos anteriores"><h2>Pedidos anteriores</h2><div id="hl"></div><div class="acts"><button class="btn alt" id="hb">Volver al pedido</button><button class="btn alt" id="cl">Cerrar</button></div></div></div>`;
+ const hl=$("#hl");if(!H.length)hl.innerHTML='<div class="empty">Todavía no has enviado pedidos.</div>';
+ H.forEach((p,i)=>{const r=document.createElement("div");r.className="li";const its=p.items.map(it=>[find(it.f),it]).filter(([d])=>d);
+  const tp=its.reduce((a,[,it])=>a+pares(it.s),0);
+  const hd=document.createElement("div");hd.className="top";const t=document.createElement("b");t.textContent=new Date(p.t).toLocaleString("es-CO",{dateStyle:"medium",timeStyle:"short"})+" · "+its.length+(its.length===1?" modelo":" modelos")+(tp?" · "+tp+" pares":"");hd.appendChild(t);r.appendChild(hd);
+  its.forEach(([d,it])=>{const ln=document.createElement("div");ln.className="need";const ts=Object.keys(it.s).sort((a,b)=>a-b).map(z=>z+" x"+it.s[z]).join(", ");ln.textContent=code(d)+" · "+nom(d)+(d.c?" · "+d.c:"")+(ts?" — "+ts:"")+(it.n?" ("+it.n+")":"");r.appendChild(ln)});
+  if(p.nota){const n=document.createElement("div");n.className="need";n.textContent="Nota: "+p.nota;r.appendChild(n)}
+  const bt=document.createElement("button");bt.type="button";bt.className="btn alt";bt.style.marginTop="8px";bt.textContent="Repetir este pedido";
+  bt.onclick=()=>{its.forEach(([d,it])=>{order.set(d.f,Object.assign({},it.s));if(it.n)window.__nn[d.f]=it.n});save();saveNN();dock();render();sheet()};r.appendChild(bt);hl.appendChild(r)});
+ $("#hb").onclick=sheet;$("#cl").onclick=()=>L.innerHTML="";$("#sh").onclick=e=>{if(e.target.id==="sh")L.innerHTML=""}}
 function sheet(){
  const L=$("#layer");
- L.innerHTML=`<div class="sheet" id="sh"><div class="panel" role="dialog" aria-label="Pedido"><h2>Mi pedido</h2><div id="li"></div><div class="note">Elige las tallas que necesitas y cuántos pares de cada una.</div><label class="nl" for="nota">Nota general del pedido (opcional)</label><textarea class="nota" id="nota" placeholder="Ej: Necesito 2 de la 40, 2 de la 41, 1 de la 42 (2.40 / 2.41 / 1.42)"></textarea><div class="note">Nosotros confirmamos por WhatsApp la disponibilidad de lo que pidas.</div><div class="acts"><button class="btn" id="im">Realizar pedido</button><button class="btn alt" id="cl">Cerrar</button></div></div></div>`;
+ L.innerHTML=`<div class="sheet" id="sh"><div class="panel" role="dialog" aria-label="Pedido"><h2>Mi pedido</h2><div id="li"></div><div class="note">Elige las tallas que necesitas y cuántos pares de cada una.</div><label class="nl" for="nota">Nota general del pedido (opcional)</label><textarea class="nota" id="nota" placeholder="Ej: Necesito 2 de la 40, 2 de la 41, 1 de la 42 (2.40 / 2.41 / 1.42)"></textarea><div class="note">Nosotros confirmamos por WhatsApp la disponibilidad de lo que pidas.</div><div class="acts"><button class="btn" id="im">Realizar pedido</button><button class="btn alt" id="hs">Pedidos anteriores</button><button class="btn alt" id="cl">Cerrar</button></div></div></div>`;
  const li=$("#li");
  if(!order.size)li.innerHTML='<div class="empty">Todavía no agregaste modelos.</div>';
  order.forEach((s,f)=>{const d=find(f);if(!d)return;
@@ -166,7 +182,8 @@ function sheet(){
    zs.appendChild(b)});
   r.appendChild(zs);const ta=document.createElement("textarea");ta.className="inote";ta.rows=2;ta.placeholder="Nota de este modelo. Ej: 2.40/2.41/1.42";ta.value=window.__nn[f]||"";ta.oninput=()=>{window.__nn[f]=ta.value;saveNN();const w=document.querySelector("#wa");if(w)w.href="https://wa.me/?text="+encodeURIComponent(text())};r.appendChild(ta);const n=document.createElement("div");n.className="need";n.textContent=pares(s)?pares(s)+" pares":"Toca una talla para pedirla. Cada toque suma un par.";r.appendChild(n);li.appendChild(r)});
  const nta=$("#nota");nta.value=window.__nota||"";const upd=()=>{window.__nota=nta.value;try{localStorage.setItem("nota4b",nta.value)}catch(e){}void 0};nta.oninput=upd;upd();
- $("#im").onclick=async()=>{const b=$("#im");if(!order.size){b.textContent="Agrega un modelo";return}b.textContent="Preparando…";try{const fs=await orderImages();if(navigator.canShare&&navigator.canShare({files:fs})){await navigator.share({files:fs,text:"Hola, quiero este pedido"});b.textContent="Realizar pedido"}else{fs.forEach((f,i)=>{const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);setTimeout(()=>{a.click();a.remove()},i*400)});b.textContent="Imagen guardada: envíala por WhatsApp"}}catch(e){b.textContent="Realizar pedido"}};
+ $("#im").onclick=async()=>{const b=$("#im");if(!order.size){b.textContent="Agrega un modelo";return}b.textContent="Preparando…";try{const fs=await orderImages();if(navigator.canShare&&navigator.canShare({files:fs})){await navigator.share({files:fs,text:"Hola, quiero este pedido"});b.textContent="Pedido enviado";finish(1000)}else{fs.forEach((f,i)=>{const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);setTimeout(()=>{a.click();a.remove()},i*400)});b.textContent="Imagen guardada: envíala por WhatsApp";finish(fs.length*400+2500)}}catch(e){b.textContent="Realizar pedido"}};
+ $("#hs").onclick=hist;
 
  $("#cl").onclick=()=>L.innerHTML="";$("#sh").onclick=e=>{if(e.target.id==="sh")L.innerHTML=""}}
 function lightbox(d){const L=$("#layer");L.innerHTML=`<div class="lb" id="lb"><div class="pic" style="${pos(d)}"></div><div class="cap"></div></div>`;
