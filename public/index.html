@@ -130,10 +130,10 @@ function wrap(c,t,x,y,mw,lh){const w=t.split(" ");let l="";for(const a of w){con
 function loadImg(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src})}
 async function orderImages(){
  const items=[...order.entries()].map(([f,s])=>[find(f),s]).filter(([d])=>d);const out=[];
- for(let k=0;k<items.length;k+=6){const part=items.slice(k,k+6);const W=1080,RH=420,HD=110,FT=(window.__nota||"").trim()?130:30;
+ for(let k=0;k<items.length;k+=1){const part=items.slice(k,k+1);const last=k===items.length-1;const W=1080,RH=420,HD=110,FT=(last&&(window.__nota||"").trim())?130:30;
   const cv=document.createElement("canvas");cv.width=W;cv.height=HD+part.length*RH+FT;const c=cv.getContext("2d");
   c.fillStyle="#fff";c.fillRect(0,0,W,cv.height);c.fillStyle="#14171c";c.font="700 44px sans-serif";c.fillText("Mi pedido · Catálogo zapatillas",32,68);
-  c.fillStyle="#5d6572";c.font="400 26px sans-serif";c.fillText("Pedido "+(k/6+1)+" de "+Math.ceil(items.length/6),32,100);
+  c.fillStyle="#5d6572";c.font="400 26px sans-serif";c.fillText("Pedido "+(k+1)+" de "+items.length,32,100);
   for(let i=0;i<part.length;i++){const [d,s]=part[i];const y=HD+i*RH;
    c.fillStyle="#d9dde3";c.fillRect(32,y,W-64,2);
    const im=await loadImg("p/"+encodeURIComponent(d.f));
@@ -146,7 +146,7 @@ async function orderImages(){
     rr(c,cx,cy,w,54,27);c.fillStyle=q?"#2446e6":"#e2e6ec";c.fill();c.fillStyle=q?"#fff":"#14171c";c.fillText(lab,cx+18,cy+38);cx+=w+12}
    const n=(window.__nn[d.f]||"").trim();if(n){c.fillStyle="#14171c";c.font="600 28px sans-serif";wrap(c,"Nota: "+n,x,cy+104,W-x-40,34)}
   }
-  const nt=(window.__nota||"").trim();if(nt){const y=HD+part.length*RH;c.fillStyle="#d9dde3";c.fillRect(32,y,W-64,2);c.fillStyle="#14171c";c.font="600 30px sans-serif";wrap(c,"Nota: "+nt,32,y+56,W-64,38)}
+  const nt=(window.__nota||"").trim();if(nt&&last){const y=HD+part.length*RH;c.fillStyle="#d9dde3";c.fillRect(32,y,W-64,2);c.fillStyle="#14171c";c.font="600 30px sans-serif";wrap(c,"Nota: "+nt,32,y+56,W-64,38)}
   out.push(await new Promise(r=>cv.toBlob(b=>r(new File([b],"pedido-zapatillas"+(out.length?"-"+(out.length+1):"")+".png",{type:"image/png"})),"image/png")))}
  return out}
 const HK="hist4b";
@@ -166,7 +166,7 @@ function hist(){const L=$("#layer");const H=getHist();
   bt.onclick=()=>{its.forEach(([d,it])=>{order.set(d.f,Object.assign({},it.s));if(it.n)window.__nn[d.f]=it.n});save();saveNN();dock();render();sheet()};r.appendChild(bt);hl.appendChild(r)});
  $("#hb").onclick=sheet;$("#cl").onclick=()=>L.innerHTML="";$("#sh").onclick=e=>{if(e.target.id==="sh")L.innerHTML=""}}
 function sheet(){
- const L=$("#layer");
+ window.__fs=null;const L=$("#layer");
  L.innerHTML=`<div class="sheet" id="sh"><div class="panel" role="dialog" aria-label="Pedido"><h2>Mi pedido</h2><div id="li"></div><div class="note">Elige las tallas que necesitas y cuántos pares de cada una.</div><label class="nl" for="nota">Nota general del pedido (opcional)</label><textarea class="nota" id="nota" placeholder="Ej: Necesito 2 de la 40, 2 de la 41, 1 de la 42 (2.40 / 2.41 / 1.42)"></textarea><div class="note">Nosotros confirmamos por WhatsApp la disponibilidad de lo que pidas.</div><div class="acts"><button class="btn" id="im">Realizar pedido</button><button class="btn alt" id="hs">Pedidos anteriores</button><button class="btn alt" id="cl">Cerrar</button></div></div></div>`;
  const li=$("#li");
  if(!order.size)li.innerHTML='<div class="empty">Todavía no agregaste modelos.</div>';
@@ -183,7 +183,14 @@ function sheet(){
    zs.appendChild(b)});
   r.appendChild(zs);const ta=document.createElement("textarea");ta.className="inote";ta.rows=2;ta.placeholder="Nota de este modelo. Ej: 2.40/2.41/1.42";ta.value=window.__nn[f]||"";ta.oninput=()=>{window.__nn[f]=ta.value;saveNN();const w=document.querySelector("#wa");if(w)w.href="https://wa.me/?text="+encodeURIComponent(text())};r.appendChild(ta);const n=document.createElement("div");n.className="need";n.textContent=pares(s)?pares(s)+" pares":"Toca una talla para pedirla. Cada toque suma un par.";r.appendChild(n);li.appendChild(r)});
  const nta=$("#nota");nta.value=window.__nota||"";const upd=()=>{window.__nota=nta.value;try{localStorage.setItem("nota4b",nta.value)}catch(e){}void 0};nta.oninput=upd;upd();
- $("#im").onclick=async()=>{const b=$("#im");if(!order.size){b.textContent="Agrega un modelo";return}b.textContent="Preparando…";try{const fs=await orderImages();if(navigator.canShare&&navigator.canShare({files:fs})){await navigator.share({files:fs,text:"Hola, quiero este pedido"});b.textContent="Pedido enviado";finish(1000)}else{fs.forEach((f,i)=>{const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);setTimeout(()=>{a.click();a.remove()},i*400)});b.textContent="Imagen guardada: envíala por WhatsApp";finish(fs.length*400+2500)}}catch(e){b.textContent="Realizar pedido"}};
+ $("#im").onclick=async()=>{const b=$("#im");if(!order.size){b.textContent="Agrega un modelo";return}
+  if(!window.__fs){b.textContent="Preparando…";try{window.__fs=await orderImages();window.__fi=0}catch(e){b.textContent="Realizar pedido";return}}
+  const fs=window.__fs,n=fs.length;
+  try{if(navigator.canShare&&navigator.canShare({files:[fs[0]]})){
+    await navigator.share({files:[fs[window.__fi]],text:"Hola, quiero este pedido"+(n>1?" ("+(window.__fi+1)+" de "+n+")":"")});window.__fi++;
+    if(window.__fi>=n){window.__fs=null;b.textContent="Pedido enviado";finish(1000)}else b.textContent="Enviar modelo "+(window.__fi+1)+" de "+n}
+   else{fs.forEach((f,i)=>{const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);setTimeout(()=>{a.click();a.remove()},i*400)});window.__fs=null;b.textContent="Imágenes guardadas: envíalas por WhatsApp";finish(n*400+2500)}}
+  catch(e){if(window.__fi){b.textContent="Enviar modelo "+(window.__fi+1)+" de "+n}else{window.__fs=null;b.textContent="Realizar pedido"}}};
  $("#hs").onclick=hist;
 
  $("#cl").onclick=()=>L.innerHTML="";$("#sh").onclick=e=>{if(e.target.id==="sh")L.innerHTML=""}}
