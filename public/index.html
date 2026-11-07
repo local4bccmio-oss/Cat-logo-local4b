@@ -184,6 +184,10 @@ function sheet(){
   r.appendChild(zs);const ta=document.createElement("textarea");ta.className="inote";ta.rows=2;ta.placeholder="Nota de este modelo. Ej: 2.40/2.41/1.42";ta.value=window.__nn[f]||"";ta.oninput=()=>{window.__nn[f]=ta.value;saveNN();const w=document.querySelector("#wa");if(w)w.href="https://wa.me/?text="+encodeURIComponent(text())};r.appendChild(ta);const n=document.createElement("div");n.className="need";n.textContent=pares(s)?pares(s)+" pares":"Toca una talla para pedirla. Cada toque suma un par.";r.appendChild(n);li.appendChild(r)});
  const nta=$("#nota");nta.value=window.__nota||"";const upd=()=>{window.__nota=nta.value;try{localStorage.setItem("nota4b",nta.value)}catch(e){}void 0};nta.oninput=upd;upd();
  $("#im").onclick=async()=>{const b=$("#im");if(!order.size){b.textContent="Agrega un modelo";return}
+  b.textContent="Preparando…";let fs;try{fs=await orderImages()}catch(e){b.textContent="Realizar pedido";return}
+  try{if(navigator.canShare&&navigator.canShare({files:fs})){await navigator.share({files:fs,text:"Hola, quiero este pedido"});b.textContent="Pedido enviado";finish(1000)}
+   else{fs.forEach((f,i)=>{const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);setTimeout(()=>{a.click();a.remove()},i*400)});b.textContent="Imágenes guardadas: envíalas por WhatsApp";finish(fs.length*400+2500)}}
+  catch(e){b.textContent="Realizar pedido"}};
   if(!window.__fs){b.textContent="Preparando…";try{window.__fs=await orderImages();window.__fi=0}catch(e){b.textContent="Realizar pedido";return}}
   const fs=window.__fs,n=fs.length;
   try{if(navigator.canShare&&navigator.canShare({files:[fs[0]]})){
