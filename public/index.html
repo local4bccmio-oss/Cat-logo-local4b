@@ -188,13 +188,6 @@ function sheet(){
   try{if(navigator.canShare&&navigator.canShare({files:fs})){await navigator.share({files:fs,text:"Hola, quiero este pedido"});b.textContent="Pedido enviado";finish(1000)}
    else{fs.forEach((f,i)=>{const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);setTimeout(()=>{a.click();a.remove()},i*400)});b.textContent="Imágenes guardadas: envíalas por WhatsApp";finish(fs.length*400+2500)}}
   catch(e){b.textContent="Realizar pedido"}};
-  if(!window.__fs){b.textContent="Preparando…";try{window.__fs=await orderImages();window.__fi=0}catch(e){b.textContent="Realizar pedido";return}}
-  const fs=window.__fs,n=fs.length;
-  try{if(navigator.canShare&&navigator.canShare({files:[fs[0]]})){
-    await navigator.share({files:[fs[window.__fi]],text:"Hola, quiero este pedido"+(n>1?" ("+(window.__fi+1)+" de "+n+")":"")});window.__fi++;
-    if(window.__fi>=n){window.__fs=null;b.textContent="Pedido enviado";finish(1000)}else b.textContent="Enviar modelo "+(window.__fi+1)+" de "+n}
-   else{fs.forEach((f,i)=>{const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);setTimeout(()=>{a.click();a.remove()},i*400)});window.__fs=null;b.textContent="Imágenes guardadas: envíalas por WhatsApp";finish(n*400+2500)}}
-  catch(e){if(window.__fi){b.textContent="Enviar modelo "+(window.__fi+1)+" de "+n}else{window.__fs=null;b.textContent="Realizar pedido"}}};
  $("#hs").onclick=hist;
 
  $("#cl").onclick=()=>L.innerHTML="";$("#sh").onclick=e=>{if(e.target.id==="sh")L.innerHTML=""}}
