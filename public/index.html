@@ -53,6 +53,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .tot{margin-top:12px;font-weight:700}
 .lb{position:fixed;inset:0;z-index:30;background:rgba(10,12,16,.82);display:flex;align-items:center;justify-content:center;padding:16px}
 .lb .pic{width:min(92vw,calc(86vh*.8),520px);aspect-ratio:4/5;background-repeat:no-repeat;border-radius:8px}
+.lb .dl{position:absolute;bottom:calc(48px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#fff;color:#14171c;border:0;border-radius:999px;padding:12px 22px;font:700 15px var(--body);cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.35)}
 .lb .cap{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:#fff;font-size:14px}
 .sz{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.sz .chip{padding:6px 10px}.sz .chip em{font-style:normal;margin-left:6px;font-weight:700}.li .top{display:flex;justify-content:space-between;gap:10px;align-items:start}.li .need{font-size:12px;color:var(--mute);margin-top:4px}.qty{display:inline-flex;align-items:center;gap:6px}.qty button{border:0;background:var(--chip);color:var(--ink);width:26px;height:26px;border-radius:50%;cursor:pointer;font-weight:700}.qty span{min-width:16px;text-align:center;font-weight:700}.nota{width:100%;min-height:84px;margin-top:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:10px 12px;font:400 15px var(--body);resize:vertical}.nl{display:block;margin-top:14px;font:700 14px var(--body)}.note{font-size:12px;color:var(--mute);margin-top:10px}
 .qty .chip{width:auto;height:auto;min-width:0;white-space:nowrap;line-height:1.2}.qty{flex-wrap:nowrap}.inote{width:100%;box-sizing:border-box;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:400 14px var(--body);padding:8px 10px;resize:vertical;min-height:44px}</style>
@@ -193,8 +194,15 @@ function sheet(){
  $("#hs").onclick=hist;
 
  $("#cl").onclick=()=>L.innerHTML="";$("#sh").onclick=e=>{if(e.target.id==="sh")L.innerHTML=""}}
-function lightbox(d){const L=$("#layer");L.innerHTML=`<div class="lb" id="lb"><div class="pic" style="${pos(d)}"></div><div class="cap"></div></div>`;
- $("#lb .cap").textContent=nom(d)+" · tallas "+tl(d);$("#lb").onclick=()=>L.innerHTML=""}
+function lightbox(d){const L=$("#layer");L.innerHTML=`<div class="lb" id="lb"><div class="pic" style="${pos(d)}"></div><div class="cap"></div><button type="button" class="dl" id="dl">Descargar foto</button></div>`;
+ const pic=$("#lb .pic");const im=new Image();const u="p/"+encodeURIComponent(d.f);im.onload=()=>{pic.style.background="url('"+u+"') center/cover no-repeat"};im.src=u;
+ $("#lb .cap").textContent=nom(d)+" · tallas "+tl(d);
+ $("#dl").onclick=async e=>{e.stopPropagation();const b=e.currentTarget;b.textContent="Preparando…";
+  try{const r=await fetch(u);const bl=await r.blob();const f=new File([bl],d.f.replace(/\.jpg$/,"")+".jpg",{type:"image/jpeg"});
+   if(navigator.canShare&&navigator.canShare({files:[f]})&&/Android|iPhone|iPad/i.test(navigator.userAgent)){try{await navigator.share({files:[f]});b.textContent="Descargar foto";return}catch(x){if(x&&x.name==="AbortError"){b.textContent="Descargar foto";return}}}
+   const a=document.createElement("a");a.href=URL.createObjectURL(bl);a.download=f.name;document.body.appendChild(a);a.click();a.remove();b.textContent="Foto guardada"}
+  catch(x){b.textContent="No se pudo descargar"}setTimeout(()=>{b.textContent="Descargar foto"},2500)};
+ $("#lb").onclick=()=>L.innerHTML=""}
 document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#layer").innerHTML=""});
 $("#q").oninput=e=>{st.q=e.target.value.trim().toLowerCase();st.n=48;render()};
 $("#more").onclick=()=>{st.n+=48;render()};
