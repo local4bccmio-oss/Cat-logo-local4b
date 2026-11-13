@@ -82,9 +82,9 @@ D.sort((a,b)=>(!!a.a-!!b.a)||(b.__f-a.__f)||(b.u||0)-(a.u||0));
 const BN={B7:"R.B7",B1:"R.B1",B2:"R.B2",B3:"R.B3",B4:"R.B4",B5:"R.B5",B9:"R.B9",B0:"R.B0",NN:"R.NN",B8:"R.B8",JH:"Johan",L6:"R.L6",B6:"R.B6",AR:"R.AR",JL:"R.JL"};
 const $=s=>document.querySelector(s);
 const st={b:"",m:"",g:"",z:0,q:"",n:48};
-const order=new Map();window.__nn={};try{window.__nn=JSON.parse(localStorage.getItem("notas4b")||"{}")}catch(e){}
-const saveNN=()=>{try{localStorage.setItem("notas4b",JSON.stringify(window.__nn))}catch(e){}};try{window.__nota=localStorage.getItem("nota4b")||""}catch(e){window.__nota=""}
-try{const o=JSON.parse(localStorage.getItem("pedido4b2")||"[]");o.forEach(([c,s])=>{if(D.some(d=>d.f===c))order.set(c,s||{})})}catch(e){}
+const order=new Map();window.__nn={};try{localStorage.removeItem("notas4b")}catch(e){}
+const saveNN=()=>{try{localStorage.setItem("notas4b",JSON.stringify(window.__nn))}catch(e){}};window.__nota="";try{localStorage.removeItem("nota4b")}catch(e){}
+try{localStorage.removeItem("pedido4b2")}catch(e){}
 const save=()=>{try{localStorage.setItem("pedido4b2",JSON.stringify([...order.entries()]))}catch(e){}};
 const tal=t=>(t||"").replace(/EUR/g,"").replace(/\s+-\s+/g," · ");
 const code=d=>d.f.replace(".jpg","");
