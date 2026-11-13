@@ -79,7 +79,7 @@ for(let i=D.length;i--;)if(D[i].h)D.splice(i,1);
 const full=d=>{const z=d.z||[],has=(a,b)=>{for(let i=a;i<=b;i++)if(!z.includes(i))return false;return true};return d.g==="D"?has(36,39):d.g==="H"?has(40,44):d.g==="DH"?has(36,39)&&has(40,44):d.g==="N"?z.length>=6:false};
 D.forEach(d=>d.__f=full(d)?1:0);
 D.sort((a,b)=>(!!a.a-!!b.a)||(b.__f-a.__f)||(b.u||0)-(a.u||0));
-const BN={B7:"RefB7",B1:"RefB1",B2:"RefB2",B3:"RefB3",B4:"RefB4",B5:"RefB5",B9:"RefB9",B0:"RefB0",NN:"RefNN",B8:"RefB8",JH:"Johan",L6:"RefL",B6:"RefB6",AR:"RefAR",JL:"RefJL"};
+const BN={B7:"R.B7",B1:"R.B1",B2:"R.B2",B3:"R.B3",B4:"R.B4",B5:"R.B5",B9:"R.B9",B0:"R.B0",NN:"R.NN",B8:"R.B8",JH:"Johan",L6:"R.L6",B6:"R.B6",AR:"R.AR",JL:"R.JL"};
 const $=s=>document.querySelector(s);
 const st={b:"",m:"",g:"",z:0,q:"",n:48};
 const order=new Map();window.__nn={};try{window.__nn=JSON.parse(localStorage.getItem("notas4b")||"{}")}catch(e){}
@@ -97,7 +97,7 @@ function match(d){
  if(st.m&&d.m!==st.m)return false;
  if(st.g&&!d.g.includes(st.g))return false;
  if(st.z&&!d.z.includes(st.z))return false;
- if(st.q){const t=(nom(d)+" "+d.r.join(" ")+" "+d.c+" "+d.f+" "+d.m+" "+BN[d.b]).toLowerCase();return st.q.split(/\s+/).every(w=>t.includes(w))}
+ if(st.q){const t=(nom(d)+" "+d.r.join(" ")+" "+d.c+" "+d.f+" "+d.m+" "+BN[d.b]+" "+BN[d.b].replace("R.","Ref")).toLowerCase();return st.q.split(/\s+/).every(w=>t.includes(w))}
  return true}
 function pos(d){const c=d.i%4,r=Math.floor(d.i/4);return `background-image:url(s/${String(d.s).padStart(3,"0")}.jpg);background-size:400% 300%;background-position:${c/3*100}% ${r/2*100}%`}
 function card(d){
