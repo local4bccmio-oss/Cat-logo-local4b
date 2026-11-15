@@ -76,8 +76,12 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <header><h1>Catálogo zapatillas</h1><p>Calzado · <span id="tot"></span> modelos disponibles</p></header>
 <div class="bar">
 <input id="q" type="search" placeholder="Buscar por marca, modelo, color o referencia" aria-label="Buscar">
-<div class="fbar"><label class="chip" style="cursor:pointer">📷 Buscar por foto<input id="pf" type="file" accept="image/*" hidden></label><label class="chip" style="cursor:pointer">📸 Tomar foto<input id="pc" type="file" accept="image/*" capture="environment" hidden></label><button class="chip" id="fopen" type="button">☰ Filtrar</button><span id="fsum" style="font-size:12px;color:var(--mute)"></span></div>
+<div class="fbar"><button class="chip" id="pbtn" type="button">📷 Buscar por foto</button><button class="chip" id="fopen" type="button">☰ Filtrar</button><span id="fsum" style="font-size:12px;color:var(--mute)"></span></div>
 </div>
+<div id="psh" class="sheet" hidden><div class="panel"><h2>Buscar por foto</h2>
+<label class="chip" style="cursor:pointer;display:block;text-align:center;padding:14px;font-size:15px;margin:8px 0">📸 Tomar foto<input id="pc" type="file" accept="image/*" capture="environment" hidden></label>
+<label class="chip" style="cursor:pointer;display:block;text-align:center;padding:14px;font-size:15px;margin:8px 0">🖼️ Elegir de la galería<input id="pf" type="file" accept="image/*" hidden></label>
+<button class="chip" id="pcx" type="button" style="display:block;width:100%;padding:12px;margin-top:4px">Cancelar</button></div></div>
 <div id="fsh" class="sheet" hidden><div class="panel"><h2>Filtrar</h2>
 <div class="row" id="fg"></div>
 <div class="row" id="fz"></div>
@@ -232,7 +236,7 @@ $("#tot").textContent=D.length;dock();render();
 
 (function(){const pb=$("#pb"),ps=$("#pbs");
  const say=t=>{pb.style.display="flex";ps.textContent=t};
- [$("#pf"),$("#pc")].forEach(el=>el.addEventListener("change",async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
+ [$("#pf"),$("#pc")].forEach(el=>el.addEventListener("change",async e=>{const f=e.target.files[0];e.target.value="";$("#psh").hidden=true;if(!f)return;
   pb.style.display="flex";const fu=URL.createObjectURL(f);$("#pbi").src=fu;$("#pfi").src=fu;$("#pfl").style.display="block";say("Foto recibida…");
   try{const M=await import("./foto.js?v=1");const r=await M.buscar(f,D,say);
    st.ph=r.f;st.b=st.m=st.g="";st.z=0;st.q="";$("#q").value="";st.n=48;render();say("Los "+r.f.length+" más parecidos del catálogo. Toca «Agregar al pedido» en el que quieras.");
@@ -246,6 +250,7 @@ $("#tot").textContent=D.length;dock();render();
   $("#fopen").textContent=a.length?"☰ Filtrar ("+a.length+")":"☰ Filtrar";
   $("#fsum").textContent=a.map(k=>k==="g"?lab[st[k]]:k==="b"?(BN[st[k]]||st[k]):st[k]).join(" · ")};
  const r0=render;render=function(){r0.apply(this,arguments);upd()};
+ $("#pbtn").onclick=()=>{$("#psh").hidden=false};$("#pcx").onclick=()=>{$("#psh").hidden=true};$("#psh").onclick=e=>{if(e.target.id==="psh")e.target.hidden=true};
  $("#fopen").onclick=()=>{sh.hidden=false};
  $("#fok").onclick=()=>{sh.hidden=true;window.scrollTo({top:0})};
  sh.addEventListener("click",e=>{if(e.target===sh)sh.hidden=true});
