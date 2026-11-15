@@ -61,12 +61,13 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <header><h1>Catálogo zapatillas</h1><p>Calzado · <span id="tot"></span> modelos disponibles</p></header>
 <div class="bar">
 <input id="q" type="search" placeholder="Buscar por marca, modelo, color o referencia" aria-label="Buscar">
-<a class="chip" href="buscar.html" style="display:inline-block;margin:8px 0 0;text-decoration:none;font-weight:700">📷 Buscar por foto</a>
+<label class="chip" style="display:inline-block;margin:8px 0 0;font-weight:700;cursor:pointer">📷 Buscar por foto<input id="pf" type="file" accept="image/*" hidden></label>
 <div class="row" id="fb"></div>
 <div class="row" id="fm"></div>
 <div class="row" id="fg"></div>
 <div class="row" id="fz"></div>
 </div>
+<div id="pb" hidden style="display:none;align-items:center;gap:12px;margin:10px 0;padding:10px;border-radius:12px;background:var(--chip)"><img id="pbi" alt="" style="width:56px;height:70px;object-fit:cover;border-radius:8px"><div style="flex:1;font-size:14px"><b>Resultados por foto</b><div id="pbs" style="color:var(--mute)"></div></div><button class="btn alt" id="pbx" type="button">Quitar</button></div>
 <div class="count" id="cnt"></div>
 <div class="grid" id="grid"></div>
 <button class="more" id="more" hidden>Ver más</button>
@@ -92,8 +93,9 @@ const code=d=>d.f.replace(".jpg","");
 const nom=d=>d.n||("Ref "+(d.r[0]||code(d)));
 const tl=d=>d.z.join(" · ");
 const find=f=>D.find(d=>d.f===f);
-function chips(el,items,key,label){el.innerHTML="";const s=document.createElement("span");s.className="lbl";s.textContent=label;el.appendChild(s);items.forEach(([v,l,c])=>{const b=document.createElement("button");b.className="chip";b.type="button";b.setAttribute("aria-pressed",String(st[key]===v));b.innerHTML=l+(c!=null?"<small>"+c+"</small>":"");b.onclick=()=>{const nv=(key==="z"&&st.z===v)?0:v;if(nv){const RS={b:["m","z"],m:["b","z"],g:["z"],z:["b","m","g"]}[key];RS.forEach(k=>{st[k]=k==="z"?0:""})}st[key]=nv;st.n=48;render()};el.appendChild(b)})}
+function chips(el,items,key,label){el.innerHTML="";const s=document.createElement("span");s.className="lbl";s.textContent=label;el.appendChild(s);items.forEach(([v,l,c])=>{const b=document.createElement("button");b.className="chip";b.type="button";b.setAttribute("aria-pressed",String(st[key]===v));b.innerHTML=l+(c!=null?"<small>"+c+"</small>":"");b.onclick=()=>{st.ph=null;const pb=document.getElementById("pb");if(pb)pb.style.display="none";const nv=(key==="z"&&st.z===v)?0:v;if(nv){const RS={b:["m","z"],m:["b","z"],g:["z"],z:["b","m","g"]}[key];RS.forEach(k=>{st[k]=k==="z"?0:""})}st[key]=nv;st.n=48;render()};el.appendChild(b)})}
 function match(d){
+ if(st.ph)return st.ph.includes(d.f);
  if(st.b&&d.b!==st.b)return false;
  if(st.m&&d.m!==st.m)return false;
  if(st.g&&!d.g.includes(st.g))return false;
@@ -111,7 +113,7 @@ function card(d){
  const a=e.querySelector(".add");a.onclick=()=>{if(order.has(d.f))order.delete(d.f);else order.set(d.f,{});save();a.setAttribute("aria-pressed",String(order.has(d.f)));a.textContent=order.has(d.f)?"En el pedido":"Agregar al pedido";dock()};
  return e}
 function render(){
- const all=D.filter(match);
+ const all=D.filter(match);if(st.ph)all.sort((a,b)=>st.ph.indexOf(a.f)-st.ph.indexOf(b.f));
  const cb={},cm={};D.forEach(d=>{cb[d.b]=(cb[d.b]||0)+1;cm[d.m]=(cm[d.m]||0)+1});
  chips($("#fb"),[["","Todos",D.length],...Object.keys(BN).filter(k=>cb[k]).map(k=>[k,BN[k],cb[k]])],"b","Stand");
  const ms=Object.keys(cm).sort((a,b)=>(a==="Otras")-(b==="Otras")||cm[b]-cm[a]);
@@ -205,8 +207,18 @@ function lightbox(d){const L=$("#layer");L.innerHTML=`<div class="lb" id="lb"><d
   catch(x){b.textContent="No se pudo descargar"}setTimeout(()=>{b.textContent="Descargar foto"},2500)};
  $("#lb").onclick=()=>L.innerHTML=""}
 document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#layer").innerHTML=""});
-$("#q").oninput=e=>{st.q=e.target.value.trim().toLowerCase();st.n=48;render()};
+$("#q").oninput=e=>{st.ph=null;$("#pb").style.display="none";st.q=e.target.value.trim().toLowerCase();st.n=48;render()};
 $("#more").onclick=()=>{st.n+=48;render()};
 $("#open").onclick=sheet;
 $("#tot").textContent=D.length;dock();render();
+
+(function(){const pb=$("#pb"),ps=$("#pbs");
+ const say=t=>{pb.style.display="flex";ps.textContent=t};
+ $("#pf").addEventListener("change",async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
+  pb.style.display="flex";$("#pbi").src=URL.createObjectURL(f);say("Foto recibida…");
+  try{const M=await import("./foto.js?v=1");const r=await M.buscar(f,D,say);
+   st.ph=r.f;st.b=st.m=st.g="";st.z=0;st.q="";$("#q").value="";st.n=48;render();say("Los "+r.f.length+" más parecidos del catálogo. Toca «Agregar al pedido» en el que quieras.");
+   $("#grid").scrollIntoView({behavior:"smooth",block:"start"})}
+  catch(err){say("No se pudo buscar: "+err.message)}});
+ $("#pbx").onclick=()=>{st.ph=null;pb.style.display="none";st.n=48;render()}})();
 </script>
