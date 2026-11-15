@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Buscar por foto · Catálogo</title>
+<style>
+:root{--bg:#f6f6f4;--card:#fff;--ink:#1c1c1c;--mut:#6b6b6b;--acc:#128c4a;--line:#e4e4e0}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--card:#1e1e1e;--ink:#f1f1f1;--mut:#a0a0a0;--acc:#34c27a;--line:#2e2e2e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}
+header a{color:var(--acc);text-decoration:none;font-size:14px}
+h1{font-size:18px;margin:0;flex:1}
+main{max-width:980px;margin:0 auto;padding:16px}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:22px 16px;text-align:center;background:var(--card)}
+.btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+button,label.b{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:12px 18px;font-size:16px;cursor:pointer;display:inline-block}
+label.b.alt{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+input[type=file]{display:none}
+#st{color:var(--mut);font-size:14px;margin:10px 0;min-height:20px}
+#q{display:none;margin:14px 0;gap:12px;align-items:center}
+#q img{width:96px;height:120px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13px}
+.ph{width:100%;aspect-ratio:4/5;background-color:#fff;background-repeat:no-repeat}
+.card div.t{padding:8px}
+.card b{display:block;font-size:14px}
+.mut{color:var(--mut)}
+.pill{display:inline-block;font-size:11px;padding:1px 6px;border-radius:99px;background:var(--line);margin-top:3px}
+</style>
+</head>
+<body>
+<header><h1>Buscar por foto</h1><a href="/">← Catálogo</a></header>
+<main>
+<div class="drop">
+  <div>Sube una foto del zapato que buscas y te mostramos los más parecidos del catálogo.</div>
+  <div class="btns">
+    <label class="b">📷 Tomar o elegir foto<input id="f" type="file" accept="image/*"></label>
+  </div>
+</div>
+<div id="st">Preparando…</div>
+<div id="q"><img id="qi" alt=""><div class="mut">Tu foto</div></div>
+<div id="res" class="grid"></div>
+</main>
+<script type="module">
+const $=s=>document.querySelector(s);
+const st=t=>$('#st').textContent=t;
+let D,V,N,K,mean,comps,sc,emb;
+const TW=420,TH=525;
+async function init(){
+  try{
+    st('Cargando catálogo…');
+    const h=await (await fetch('/?_='+Date.now())).text();
+    D=JSON.parse(h.match(/const D=(\[.*?\]);\n/s)[1]);
+    const meta=await (await fetch('huellas.json?_='+Date.now())).json();
+    K=meta.k;N=meta.n;
+    if(N!==D.length) console.warn('catálogo cambió: huellas',N,'catálogo',D.length);
+    V=new Int8Array(await (await fetch('huellas.bin?_='+Date.now())).arrayBuffer());
+    const pb=await (await fetch('proj.bin?_='+Date.now())).arrayBuffer();
+    const dv=new DataView(pb);sc=dv.getFloat32(0,true);
+    mean=new Float32Array(pb,4,1280);
+    comps=new Int8Array(pb,4+1280*4,K*1280);
+    st('Cargando el buscador de imágenes (la primera vez tarda unos segundos)…');
+    const M=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs');
+    const fs=await M.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
+    emb=await M.ImageEmbedder.createFromOptions(fs,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/image_embedder/mobilenet_v3_large/float32/1/mobilenet_v3_large.tflite'},runningMode:'IMAGE',l2Normalize:true});
+    st('Listo. Sube una foto.');
+  }catch(e){st('No se pudo cargar el buscador: '+e.message)}
+}
+function project(x){ // x Float32Array(1280) -> normalized Float32Array(K)
+  const y=new Float32Array(K);let n=0;
+  for(let k=0;k<K;k++){let s=0;const o=k*1280;for(let j=0;j<1280;j++)s+=comps[o+j]*(x[j]-mean[j]);y[k]=s;n+=s*s}
+  n=Math.sqrt(n)||1;for(let k=0;k<K;k++)y[k]/=n;return y}
+async function search(file){
+  if(!emb){st('Todavía se está cargando el buscador…');return}
+  st('Buscando…');
+  const url=URL.createObjectURL(file);const im=new Image();im.src=url;await im.decode();
+  $('#qi').src=url;$('#q').style.display='flex';
+  const c=document.createElement('canvas');c.width=TW;c.height=TH;const g=c.getContext('2d');
+  g.fillStyle='#fff';g.fillRect(0,0,TW,TH);
+  const k=Math.min(TW/im.naturalWidth,TH/im.naturalHeight),w=im.naturalWidth*k,h=im.naturalHeight*k;
+  g.drawImage(im,(TW-w)/2,(TH-h)/2,w,h);
+  const v=emb.embed(c).embeddings[0].floatEmbedding;
+  const q=project(v);
+  const sims=new Float32Array(N);
+  for(let i=0;i<N;i++){let s=0;const o=i*K;for(let j=0;j<K;j++)s+=V[o+j]*q[j];sims[i]=s/127}
+  const idx=[...sims.keys()].filter(i=>!D[i].h).sort((a,b)=>sims[b]-sims[a]).slice(0,30);
+  const R=$('#res');R.innerHTML='';
+  for(const i of idx){
+    const d=D[i];const col=i2=>0;
+    const card=document.createElement('div');card.className='card';
+    const ph=document.createElement('div');ph.className='ph';
+    const s=String(d.s).padStart(3,'0');
+    ph.style.backgroundImage=`url(s/${s}.jpg)`;
+    ph.style.backgroundSize='400% 300%';
+    ph.style.backgroundPosition=`${(d.i%4)*100/3}% ${Math.floor(d.i/4)*100/2}%`;
+    card.appendChild(ph);
+    const t=document.createElement('div');t.className='t';
+    t.innerHTML=`<b></b><span class="mut"></span><div class="mut"></div><div class="mut"></div>${d.a?'<span class="pill">Posiblemente agotado</span>':''}`;
+    t.children[0].textContent=d.n;t.children[1].textContent=`Ref ${d.r.join(' / ')} · ${d.b}`;
+    t.children[2].textContent=d.t||'';t.children[3].textContent=d.c||'';
+    card.appendChild(t);R.appendChild(card)}
+  st(`Estos son los ${idx.length} más parecidos.`);
+}
+$('#f').addEventListener('change',e=>{const f=e.target.files[0];if(f)search(f)});
+init();
+</script>
+</body>
+</html>
