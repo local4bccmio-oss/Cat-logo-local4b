@@ -46,7 +46,7 @@ input[type=file]{display:none}
 <script type="module">
 const $=s=>document.querySelector(s);
 const st=t=>$('#st').textContent=t;
-let D,V,N,K,mean,sess,ort,pending=null;
+let D,V,N,K,mean,sess,ort,pending=null,CV,cmean,row;const CW=0.3;
 const S=256;
 async function init(){
   try{
@@ -57,6 +57,9 @@ async function init(){
     K=meta.k;N=meta.n;
     V=new Int8Array(await (await fetch('huellas.bin?_='+Date.now())).arrayBuffer());
     mean=new Float32Array(await (await fetch('mean.bin?_='+Date.now())).arrayBuffer());
+    CV=new Int8Array(await (await fetch('color.bin?_='+Date.now())).arrayBuffer());
+    cmean=new Float32Array(await (await fetch('colormean.bin?_='+Date.now())).arrayBuffer());
+    const pos=new Map(meta.f.map((f,i)=>[f,i]));row=D.map(d=>pos.has(d.f)?pos.get(d.f):-1);
     st('Cargando el buscador de imágenes (la primera vez tarda, ~46 MB)…');
     ort=await import('https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.mjs');
     ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
@@ -73,6 +76,12 @@ function crop(im){ // foco en la zona del zapato (igual que el catálogo): x .1-
   const c=document.createElement('canvas');c.width=c.height=S;const g=c.getContext('2d');
   g.fillStyle='#fff';g.fillRect(0,0,S,S);const k=S/m;
   g.drawImage(im,sx,sy,sw,sh,(S-sw*k)/2,(S-sh*k)/2,sw*k,sh*k);return c}
+function chist(im){ // histograma de color (4x4x4) de la zona central del zapato
+  const W=im.naturalWidth,H=im.naturalHeight,c=document.createElement('canvas');c.width=c.height=48;const g=c.getContext('2d');
+  g.drawImage(im,.2*W,.4*H,.6*W,.45*H,0,0,48,48);const d=g.getImageData(0,0,48,48).data,h=new Float32Array(64);
+  for(let i=0;i<48*48;i++)h[(d[i*4]>>6)*16+(d[i*4+1]>>6)*4+(d[i*4+2]>>6)]++;
+  let n=0;for(let j=0;j<64;j++){h[j]=Math.sqrt(h[j]/2304);n+=h[j]*h[j]}n=Math.sqrt(n)||1;
+  let m=0;for(let j=0;j<64;j++){h[j]=h[j]/n-cmean[j];m+=h[j]*h[j]}m=Math.sqrt(m)||1;for(let j=0;j<64;j++)h[j]/=m;return h}
 async function embed(c){
   const d=c.getContext('2d').getImageData(0,0,S,S).data,a=new Float32Array(3*S*S),n=S*S;
   for(let i=0;i<n;i++){a[i]=d[i*4]/255;a[n+i]=d[i*4+1]/255;a[2*n+i]=d[i*4+2]/255}
@@ -86,9 +95,10 @@ async function search(file){
   st('Buscando…');
   const im=new Image();im.src=url;await im.decode();
   const q=await embed(crop(im));let nq=0;for(let j=0;j<K;j++){q[j]-=mean[j];nq+=q[j]*q[j]}nq=Math.sqrt(nq)||1;for(let j=0;j<K;j++)q[j]/=nq;
-  const sims=new Float32Array(N);
-  for(let i=0;i<N;i++){let s=0;const o=i*K;for(let j=0;j<K;j++)s+=V[o+j]*q[j];sims[i]=s/127}
-  const idx=[...sims.keys()].filter(i=>!D[i].h).sort((a,b)=>sims[b]-sims[a]).slice(0,30);
+  const qc=chist(im);
+  const sims=new Float32Array(D.length).fill(-9);
+  for(let i=0;i<D.length;i++){const r=row[i];if(r<0)continue;let s=0,o=r*K;for(let j=0;j<K;j++)s+=V[o+j]*q[j];let c=0;o=r*64;for(let j=0;j<64;j++)c+=CV[o+j]*qc[j];sims[i]=s/127+CW*c/127}
+  const idx=[...sims.keys()].filter(i=>!D[i].h&&row[i]>=0).sort((a,b)=>sims[b]-sims[a]).slice(0,30);
   const R=$('#res');R.innerHTML='';
   for(const i of idx){
     const d=D[i];
