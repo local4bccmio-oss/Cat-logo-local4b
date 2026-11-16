@@ -55,5 +55,6 @@ js='''
 '''%wa
 k=h.rindex('</script>')
 h=h[:k]+js+h[k:]
+os.path.exists(dst+'/index.html') and os.remove(dst+'/index.html')  # romper el hardlink: no tocar public/
 open(dst+'/index.html','w').write(h)
 print('dist-detal listo:',len(D),'modelos;',sum(1 for d in D if d.get('v')),'con precio')
