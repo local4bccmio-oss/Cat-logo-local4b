@@ -158,23 +158,36 @@ function wrap(c,t,x,y,mw,lh){const w=t.split(" ");let l="";for(const a of w){con
 function loadImg(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src})}
 async function orderImages(){
  const items=[...order.entries()].map(([f,s])=>[find(f),s]).filter(([d])=>d);const out=[];
- for(let k=0;k<items.length;k+=1){const part=items.slice(k,k+1);const last=k===items.length-1;const W=1080,RH=420,HD=110,FT=(last&&(window.__nota||"").trim())?130:30;
-  const cv=document.createElement("canvas");cv.width=W;cv.height=HD+part.length*RH+FT;const c=cv.getContext("2d");
-  c.fillStyle="#fff";c.fillRect(0,0,W,cv.height);c.fillStyle="#14171c";c.font="700 44px sans-serif";c.fillText("Mi pedido · Catálogo zapatillas",32,68);
-  c.fillStyle="#5d6572";c.font="400 26px sans-serif";c.fillText("Pedido "+(k+1)+" de "+items.length,32,100);
-  for(let i=0;i<part.length;i++){const [d,s]=part[i];const y=HD+i*RH;
-   c.fillStyle="#d9dde3";c.fillRect(32,y,W-64,2);
-   const im=await loadImg("p/"+encodeURIComponent(d.f));
-   if(im){const sc=Math.min(300/im.width,380/im.height);const w=im.width*sc,h=im.height*sc;c.drawImage(im,32,y+20,w,h)}
-   const x=372;c.fillStyle="#14171c";c.font="700 40px sans-serif";c.fillText(code(d),x,y+62);
-   c.fillStyle="#5d6572";c.font="400 28px sans-serif";let yy=wrap(c,nom(d)+(d.c?" · "+d.c:""),x,y+102,W-x-40,34);
-   let cx=x,cy=yy+14;c.font="700 32px sans-serif";
-   const zs=d.z.length?d.z:Object.keys(s).map(Number);
-   for(const z of zs){const q=s[z]||0;const lab=String(z)+(q>1?" ×"+q:"");const w=c.measureText(lab).width+36;if(cx+w>W-32){cx=x;cy+=68}
-    rr(c,cx,cy,w,54,27);c.fillStyle=q?"#2446e6":"#e2e6ec";c.fill();c.fillStyle=q?"#fff":"#14171c";c.fillText(lab,cx+18,cy+38);cx+=w+12}
-   const n=(window.__nn[d.f]||"").trim();if(n){c.fillStyle="#14171c";c.font="600 28px sans-serif";wrap(c,"Nota: "+n,x,cy+104,W-x-40,34)}
-  }
-  const nt=(window.__nota||"").trim();if(nt&&last){const y=HD+part.length*RH;c.fillStyle="#d9dde3";c.fillRect(32,y,W-64,2);c.fillStyle="#14171c";c.font="600 30px sans-serif";wrap(c,"Nota: "+nt,32,y+56,W-64,38)}
+ const W=1080,PH=860,HD=84,sc0=document.createElement("canvas").getContext("2d");
+ for(let k=0;k<items.length;k+=1){const [d,s]=items[k];const last=k===items.length-1;
+  const nt=last?(window.__nota||"").trim():"";const n=(window.__nn[d.f]||"").trim();
+  const zs=d.z.length?d.z:Object.keys(s).map(Number);
+  sc0.font="700 34px sans-serif";
+  const labs=zs.map(z=>{const q=s[z]||0;const lab=String(z)+(q>1?" ×"+q:"");return{q,lab,w:sc0.measureText(lab).width+38}});
+  const rows=[];let row=[],rw=0;for(const l of labs){if(row.length&&rw+l.w+12>W-64){rows.push(row);row=[];rw=0}row.push(l);rw+=l.w+12}if(row.length)rows.push(row);
+  const lines=(t,font,mw)=>{sc0.font=font;const ws=t.split(" ");let l="";const r=[];for(const a of ws){const q=l?l+" "+a:a;if(sc0.measureText(q).width>mw&&l){r.push(l);l=a}else l=q}r.push(l);return r};
+  const nameL=lines(nom(d)+(d.c?" · "+d.c:""),"400 34px sans-serif",W-120);
+  const noteL=n?lines("Nota: "+n,"600 34px sans-serif",W-120):[];
+  const gL=nt?lines("Nota: "+nt,"600 30px sans-serif",W-120):[];
+  const need=HD+PH+20+60+14+nameL.length*42+22+rows.length*76+(noteL.length?18+noteL.length*42:0)+(gL.length?24+gL.length*38:0)+40;
+  const H=Math.max(1350,need);
+  const cv=document.createElement("canvas");cv.width=W;cv.height=H;const c=cv.getContext("2d");
+  c.fillStyle="#fff";c.fillRect(0,0,W,H);
+  c.fillStyle="#14171c";c.font="700 36px sans-serif";c.fillText("Mi pedido · Catálogo zapatillas",32,56);
+  c.fillStyle="#5d6572";c.font="400 26px sans-serif";c.textAlign="right";c.fillText("Pedido "+(k+1)+" de "+items.length,W-32,56);c.textAlign="left";
+  c.fillStyle="#f3f4f6";rr(c,32,HD,W-64,PH,24);c.fill();
+  const im=await loadImg("p/"+encodeURIComponent(d.f));
+  if(im){const sc=Math.min((W-88)/im.width,(PH-24)/im.height);const w=im.width*sc,h=im.height*sc;c.save();rr(c,32,HD,W-64,PH,24);c.clip();c.drawImage(im,32+(W-64-w)/2,HD+(PH-h)/2,w,h);c.restore()}
+  let y=HD+PH+20;c.textAlign="center";
+  c.fillStyle="#14171c";c.font="700 60px sans-serif";c.fillText(code(d),W/2,y+48);y+=60+14;
+  c.fillStyle="#5d6572";c.font="400 34px sans-serif";nameL.forEach((t,i)=>c.fillText(t,W/2,y+30+i*42));y+=nameL.length*42+22;
+  c.font="700 34px sans-serif";
+  for(const r of rows){const tw=r.reduce((a,l)=>a+l.w+12,-12);let cx=(W-tw)/2;
+   for(const l of r){rr(c,cx,y,l.w,58,29);c.fillStyle=l.q?"#2446e6":"#e2e6ec";c.fill();c.fillStyle=l.q?"#fff":"#14171c";c.fillText(l.lab,cx+l.w/2,y+41);cx+=l.w+12}
+   y+=76}
+  if(noteL.length){y+=18;c.fillStyle="#14171c";c.font="600 34px sans-serif";noteL.forEach((t,i)=>c.fillText(t,W/2,y+30+i*42));y+=noteL.length*42}
+  if(gL.length){y+=24;c.fillStyle="#14171c";c.font="600 30px sans-serif";gL.forEach((t,i)=>c.fillText(t,W/2,y+28+i*38))}
+  c.textAlign="left";
   out.push(await new Promise(r=>cv.toBlob(b=>r(new File([b],"pedido-zapatillas"+(out.length?"-"+(out.length+1):"")+".png",{type:"image/png"})),"image/png")))}
  return out}
 const HK="hist4b";
