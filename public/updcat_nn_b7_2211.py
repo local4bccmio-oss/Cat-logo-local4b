@@ -75,7 +75,7 @@ B=[('71039-D.jpg','IMG-20261105-WA5339.jpg',None,100,'36EUR al 39EUR',[36,37,38,
 ('71059-D.jpg','IMG-20261122-WA1059.jpg','Nike SB Dunk',90,'36EUR al 39EUR',[36,37,38,39],'crema vino'),
 ('71060-D.jpg','IMG-20261122-WA1060.jpg','Nike SB Dunk',90,'36EUR al 39EUR',[36,37,38,39],'azul claro')]
 for k,(f,src,nombre,price,t_,z_,col) in enumerate(B,1):
-    code=f[:5];lab='%s-%s/%s'%(code,f[5],t_.lower())
+    code=f[:5];lab=f[:-4]+'/'+t_.lower()
     if f in byf:
         d=byf[f];d['d']='22/11';d.pop('a',None);d.pop('h',None);d['t']=t_;d['z']=z_;nombre=d['n'];col=d['c']
     else:
